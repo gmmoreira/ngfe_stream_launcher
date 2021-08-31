@@ -1,43 +1,54 @@
+package com.gmmoreira
+
 import kotlinx.cinterop.*
 import platform.windows.*
 
-class Launcher(val displayDeviceRepository: DisplayDeviceRepository, val resolutionRepository: ResolutionRepository, val logger: Logger? = null) {
-    fun spawn(command: String, args: List<String>, cwd: String?) {
+actual class Launcher actual constructor(private val displayDeviceRepository: DisplayDeviceRepository, private val resolutionRepository: ResolutionRepository, private val logger: Logger?) {
+    actual fun spawn(config: Configuration) {
         val primaryDevice = displayDeviceRepository.primaryDevice()
-        val resolution = Configuration().getOrDefault("")
         val currentResolution = primaryDevice?.let { resolutionRepository.getCurrentResolution(it) }
+        val targetResolution = config.resolution()
         currentResolution?.let { logger?.run { info("Current resolution: $it") } }
-        primaryDevice?.let {
-            logger?.run { info("Changing resolution to $resolution") }
-            resolutionRepository.applyResolution(it, resolution)
+        targetResolution?.let { logger?.run { info("Target resolution: $it") } }
+
+        if (primaryDevice != null && targetResolution != null) {
+            logger?.run { info("Changing resolution to $targetResolution") }
+
+            if (!config.dryRun)
+                resolutionRepository.applyResolution(primaryDevice, targetResolution)
         }
-        launch(command, args, cwd)
-        primaryDevice?.let { device ->
-            currentResolution?.let { resolution ->
-                logger?.run { info("Restoring original resolution $resolution") }
-                resolutionRepository.applyResolution(device, resolution)
-            }
+
+        launch(config)
+
+        if (primaryDevice != null && currentResolution != null) {
+            logger?.run { info("Restoring original resolution $currentResolution") }
+
+            if (!config.dryRun)
+                resolutionRepository.applyResolution(primaryDevice, currentResolution)
         }
-        logger?.let(Logger::close)
     }
 
     // https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
     // https://docs.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
     // https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject
-    fun launch(executable: String, args: List<String>, cwd: String?) {
-        val joinedArgs = args.joinToString(" ")
+    actual fun launch(config: Configuration) {
+        val application = config.application
+        val joinedArgs = config.args.joinToString(" ")
+        val cwd = config.cwd
 
         logger?.run {
-            info("Launching $executable")
+            info("Launching $application")
             info("Arguments: \"$joinedArgs\"")
             cwd?.let { info("Current Working Directory: $it")}
         }
+
+        if (config.dryRun) return
 
         memScoped {
             val flags = (NORMAL_PRIORITY_CLASS or CREATE_NEW_CONSOLE or CREATE_NEW_PROCESS_GROUP).toUInt()
             val startupInfo = alloc<STARTUPINFO>()
             val processInformation = alloc<PROCESS_INFORMATION>()
-            val cmdLine = "\"$executable\" $joinedArgs"
+            val cmdLine = "\"$application\" $joinedArgs"
             val result = CreateProcess?.let {
                 it(null, cmdLine.wcstr.ptr, null, null, 0, flags,
                     null, cwd?.wcstr?.ptr, startupInfo.ptr, processInformation.ptr) != 0
@@ -45,7 +56,7 @@ class Launcher(val displayDeviceRepository: DisplayDeviceRepository, val resolut
 
             if (result) {
                 processInformation.run {
-                    logger?.run { info("Process $dwProcessId for $executable") }
+                    logger?.run { info("Process $dwProcessId for $application") }
                     // println("Monitoring $dwProcessId for $timeout ms")
 
                     do {

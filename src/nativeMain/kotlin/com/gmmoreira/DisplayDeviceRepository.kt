@@ -1,9 +1,11 @@
+package com.gmmoreira
+
 import kotlinx.cinterop.*
 import platform.windows.*
 
-class DisplayDeviceRepository(val logger: Logger? = null) {
+actual class DisplayDeviceRepository actual constructor(private val logger: Logger?) {
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesw
-    fun attachedDevices(): List<DisplayDevice> {
+    actual fun attachedDevices(): List<DisplayDevice> {
         val list = mutableListOf<DisplayDevice>()
         var deviceIndex = 0u
         var result = 1
@@ -36,7 +38,7 @@ class DisplayDeviceRepository(val logger: Logger? = null) {
     }
 
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaydevicesw
-    fun primaryDevice(): DisplayDevice? {
+    actual fun primaryDevice(): DisplayDevice? {
         memScoped {
             val device = alloc<DISPLAY_DEVICE>()
             val pDevice = device.ptr

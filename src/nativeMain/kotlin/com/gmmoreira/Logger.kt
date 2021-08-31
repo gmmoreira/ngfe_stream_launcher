@@ -1,7 +1,9 @@
+package com.gmmoreira
+
 import kotlinx.cinterop.*
 import platform.posix.*
 
-class Logger(private val filename: String = "log.txt") {
+actual class Logger actual constructor(private val filename: String) {
     private var fileHandle: Int? = null
 
     init {
@@ -11,12 +13,21 @@ class Logger(private val filename: String = "log.txt") {
             fileHandle = file
     }
 
-    fun info(message: String) {
+    actual fun info(message: String) {
+        writeToFile(message, "INFO")
+    }
+
+    actual fun error(message: String) {
+        writeToFile(message, "ERROR")
+    }
+
+    private fun writeToFile(message: String, level: String) {
         fileHandle?.let {
             memScoped {
                 val formattedMessage = formatMessage(message, "INFO")
                 println(formattedMessage)
                 val buffer = formattedMessage.cstr
+                // remove 1 from buffer size to not write NULL character at the end of string
                 val count = if (buffer.size > 0) buffer.size - 1 else 0
                 write(it, buffer, count.toUInt())
             }
@@ -38,7 +49,7 @@ class Logger(private val filename: String = "log.txt") {
             val tm = localtime(t.ptr)
             val buffer = allocArray<ByteVar>(256)
             val format = "%Y-%m-%dT%H:%M:%S%z"
-            val bytesWritten = strftime(buffer, 256, format, tm)
+            strftime(buffer, 256, format, tm)
             return buffer.toKString().trim()
         }
     }

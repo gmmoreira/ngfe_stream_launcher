@@ -25,8 +25,8 @@ kotlin {
                 entryPoint = "main"
                 if (isMingwX64) {
                     //linkerOpts("-Wl,--subsystem,windows")
-                    //runTask?.args("-h")
-                    runTask?.args("--cwd", "E:\\Guilherme", "C:\\Windows\\System32\\notepad.exe", "a.txt", "b.txt")
+                    runTask?.args("--help")
+                    //runTask?.args("--cwd", "E:\\Guilherme", "C:\\Windows\\System32\\notepad.exe", "a.txt", "b.txt")
                 }
             }
         }
@@ -35,6 +35,11 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("com.github.ajalt.clikt:clikt:3.2.0")
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
             }
         }
         val nativeMain by getting

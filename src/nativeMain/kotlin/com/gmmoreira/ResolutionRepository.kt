@@ -1,9 +1,11 @@
+package com.gmmoreira
+
 import kotlinx.cinterop.*
 import platform.windows.*
 
-class ResolutionRepository(val readOnly: Boolean = false, val logger: Logger? = null) {
+actual class ResolutionRepository actual constructor(private val readOnly: Boolean, private val logger: Logger?) {
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsw
-    fun getResolutions(device: DisplayDevice): List<Resolution> {
+    actual fun getResolutions(device: DisplayDevice): List<Resolution> {
         val resolutions = mutableListOf<Resolution>()
 
         memScoped {
@@ -27,7 +29,7 @@ class ResolutionRepository(val readOnly: Boolean = false, val logger: Logger? = 
     }
 
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsw
-    fun getCurrentResolution(device: DisplayDevice): Resolution? {
+    actual fun getCurrentResolution(device: DisplayDevice): Resolution? {
         memScoped {
             val devmode = alloc<DEVMODE>()
             devmode.dmSize = sizeOf<DEVMODE>().toUShort()
@@ -43,7 +45,7 @@ class ResolutionRepository(val readOnly: Boolean = false, val logger: Logger? = 
     }
 
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-changedisplaysettingsexw
-    fun applyResolution(device: DisplayDevice, resolution: Resolution) {
+    actual fun applyResolution(device: DisplayDevice, resolution: Resolution) {
         memScoped {
             val devmode = alloc<DEVMODE>()
             devmode.dmSize = sizeOf<DEVMODE>().toUShort()
