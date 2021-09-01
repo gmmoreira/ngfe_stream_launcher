@@ -12,6 +12,7 @@ repositories {
 kotlin {
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
+/*
     val nativeTarget = when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
@@ -31,6 +32,27 @@ kotlin {
             }
         }
     }
+*/
+
+    val windowsTarget = mingwX64("windows")
+    val linuxTarget = linuxX64("linux")
+    val macTarget = macosX64("macos")
+
+    val nativeTarget = when {
+        hostOs == "Mac OS X" -> macTarget
+        hostOs == "Linux" -> linuxTarget
+        isMingwX64 -> windowsTarget
+        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
+
+    nativeTarget.apply {
+        binaries {
+            executable {
+                entryPoint = "main"
+                runTask?.args("--help")
+            }
+        }
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -42,7 +64,11 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val nativeMain by getting
-        val nativeTest by getting
+        val windowsMain by getting
+        val windowsTest by getting
+        val linuxMain by getting
+        val linuxTest by getting
+        val macosMain by getting
+        val macosTest by getting
     }
 }
