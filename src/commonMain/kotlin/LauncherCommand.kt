@@ -22,7 +22,7 @@ class LauncherCommand : CliktCommand() {
     override fun run() {
         val logger = Logger()
         val displayDeviceRepository = DisplayDeviceRepository(logger)
-        val resolutionRepository = ResolutionRepository(true, logger)
+        val resolutionRepository = ResolutionRepository(logger)
         val configuration = Configuration(application, args, width, height, refreshRate, cwd, dryRun)
             .loadConfigFile(configFile)
 

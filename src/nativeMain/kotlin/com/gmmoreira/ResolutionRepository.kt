@@ -3,7 +3,7 @@ package com.gmmoreira
 import kotlinx.cinterop.*
 import platform.windows.*
 
-actual class ResolutionRepository actual constructor(private val readOnly: Boolean, private val logger: Logger?) {
+actual class ResolutionRepository actual constructor(private val logger: Logger?) {
     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumdisplaysettingsw
     actual fun getResolutions(device: DisplayDevice): List<Resolution> {
         val resolutions = mutableListOf<Resolution>()
@@ -61,17 +61,14 @@ actual class ResolutionRepository actual constructor(private val readOnly: Boole
 
                 val dynamic = 0u
 
-                if(!readOnly) {
-                    val changed = ChangeDisplaySettingsEx?.let {
-                        it(device.name.wcstr.ptr, devmode.ptr, null, dynamic, null) == DISP_CHANGE_SUCCESSFUL
-                    } ?: false
+                val changed = ChangeDisplaySettingsEx?.let {
+                    it(device.name.wcstr.ptr, devmode.ptr, null, dynamic, null) == DISP_CHANGE_SUCCESSFUL
+                } ?: false
 
-                    if (changed) {
-                        val newResolution = getCurrentResolution(device)
-                        logger?.run { info("New resolution is: $newResolution") }
-                    }
-                } else
-                    logger?.run { info("Repository is read-only") }
+                if (changed) {
+                    val newResolution = getCurrentResolution(device)
+                    logger?.run { info("New resolution is: $newResolution") }
+                }
             }
         }
     }

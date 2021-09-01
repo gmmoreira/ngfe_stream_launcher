@@ -3,7 +3,9 @@ package com.gmmoreira
 import kotlinx.cinterop.*
 import platform.windows.*
 
-actual class Launcher actual constructor(private val displayDeviceRepository: DisplayDeviceRepository, private val resolutionRepository: ResolutionRepository, private val logger: Logger?) {
+actual class Launcher actual constructor(private val displayDeviceRepository: DisplayDeviceRepository,
+                                         private val resolutionRepository: ResolutionRepository,
+                                         private val logger: Logger?) {
     actual fun spawn(config: Configuration) {
         val primaryDevice = displayDeviceRepository.primaryDevice()
         val currentResolution = primaryDevice?.let { resolutionRepository.getCurrentResolution(it) }
