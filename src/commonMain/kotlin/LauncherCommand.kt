@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 
-class LauncherCommand : CliktCommand() {
+class LauncherCommand(val logger: Logger) : CliktCommand() {
     val application by argument().default("")
     val args by argument().multiple()
     val cwd: String? by option(help = "set current working directory")
@@ -20,7 +20,6 @@ class LauncherCommand : CliktCommand() {
     val dryRun: Boolean by option("-n", "--dry-run", help = "log what would be done").flag()
 
     override fun run() {
-        val logger = Logger()
         val displayDeviceRepository = DisplayDeviceRepository(logger)
         val resolutionRepository = ResolutionRepository(logger)
         val configuration = Configuration(application, args, width, height, refreshRate, cwd, dryRun)

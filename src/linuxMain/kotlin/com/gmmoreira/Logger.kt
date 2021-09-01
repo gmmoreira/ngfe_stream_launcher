@@ -3,7 +3,7 @@ package com.gmmoreira
 import kotlinx.cinterop.*
 import platform.posix.*
 
-actual class Logger actual constructor(private val filename: String) {
+class LinuxLogger (private val filename: String): Logger {
     private var fileHandle: Int? = null
 
     init {
@@ -13,20 +13,12 @@ actual class Logger actual constructor(private val filename: String) {
             fileHandle = file
     }
 
-    actual fun info(message: String) {
-        writeToFile(message, "INFO")
-    }
+    override fun write(message: String) {
+        println(message)
 
-    actual fun error(message: String) {
-        writeToFile(message, "ERROR")
-    }
-
-    private fun writeToFile(message: String, level: String) {
         fileHandle?.let {
             memScoped {
-                val formattedMessage = formatMessage(message, "INFO")
-                println(formattedMessage)
-                val buffer = formattedMessage.cstr
+                val buffer = message.cstr
                 // remove 1 from buffer size to not write NULL character at the end of string
                 val count = if (buffer.size > 0) buffer.size.toULong() - 1u else 0u
                 write(it, buffer, count)
@@ -34,7 +26,7 @@ actual class Logger actual constructor(private val filename: String) {
         }
     }
 
-    private fun currentTime(): String {
+    override fun currentTime(): String {
         memScoped {
             val t = alloc<LongVar>()
             time(t.ptr)
@@ -42,23 +34,7 @@ actual class Logger actual constructor(private val filename: String) {
         }
     }
 
-    private fun isoTime(): String {
-        memScoped {
-            val t = alloc<LongVar>()
-            time(t.ptr)
-            val tm = localtime(t.ptr)
-            val buffer = allocArray<ByteVar>(256)
-            val format = "%Y-%m-%dT%H:%M:%S%z"
-            strftime(buffer, 256, format, tm)
-            return buffer.toKString().trim()
-        }
-    }
-
-    private fun formatMessage(message: String, level: String): String {
-        return "[${currentTime()}] $level --: $message\n"
-    }
-
-    fun close() {
+    override fun close() {
         fileHandle?.let(::close)
     }
 }
