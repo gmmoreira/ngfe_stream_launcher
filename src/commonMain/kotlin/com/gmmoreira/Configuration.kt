@@ -18,8 +18,8 @@ data class Configuration(
 
     fun loadConfigFile(configFile: String?, fileReader: FileReader): Configuration {
         return configFile?.let {
-            val loadedConfig = Yaml.decodeFromString(Configuration.serializer(),
-                fileReader.readText(configFile))
+            val loadedConfig = Yaml().decodeFromString(Configuration.serializer(),
+                fileReader.readText(configFile).trimIndent())
             copy().let {
                 if (loadedConfig.application.isNotEmpty()) it.copy(application = loadedConfig.application) else it
             }.let {
