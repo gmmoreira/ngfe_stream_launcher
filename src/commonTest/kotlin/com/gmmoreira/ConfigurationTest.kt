@@ -29,4 +29,8 @@ internal class ConfigurationTest {
 
         assertEquals(config, newConfig)
     }
+
+    @Test
+    fun itLoadContentsFromFile() {
+    }
 }

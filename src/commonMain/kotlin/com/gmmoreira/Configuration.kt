@@ -1,5 +1,8 @@
 package com.gmmoreira
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Configuration(
     val application: String = "", val args: List<String> = emptyList(),
     val width: UInt? = null, val height: UInt? = null, val refreshRate: UInt? = null,

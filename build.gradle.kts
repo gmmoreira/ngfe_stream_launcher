@@ -57,6 +57,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("com.github.ajalt.clikt:clikt:3.2.0")
+                implementation("net.mamoe.yamlkt:yamlkt:0.10.2")
             }
         }
         val commonTest by getting {
