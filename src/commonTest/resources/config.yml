@@ -1,0 +1,6 @@
+application: 'C:\Windows\System32\notepad.exe'
+args: [a.txt, b.txt]
+width: 1920
+height: 1080
+refreshRate: 60
+cwd: 'C:\Users'

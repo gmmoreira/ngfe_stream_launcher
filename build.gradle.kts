@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform") version "1.5.30"
+    kotlin("plugin.serialization") version "1.5.30"
 }
 
 group = "me.guilh"
@@ -57,6 +58,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("com.github.ajalt.clikt:clikt:3.2.0")
+                implementation("net.mamoe.yamlkt:yamlkt:0.10.2")
             }
         }
         val commonTest by getting {
