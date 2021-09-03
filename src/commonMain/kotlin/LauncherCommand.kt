@@ -43,8 +43,10 @@ class LauncherCommand(val logger: Logger, val fileReader: FileReader, val proces
                 resolutionRepository.applyResolution(primaryDevice, targetResolution)
         }
 
-        val process: Process = processManager.createProcess(configuration)
-        processManager.waitProcessExit(process)
+        if (!configuration.dryRun) {
+            val process: Process = processManager.createProcess(configuration)
+            processManager.waitProcessExit(process)
+        }
 
         if (primaryDevice != null && currentResolution != null) {
             logger.run { info("Restoring original resolution $currentResolution") }

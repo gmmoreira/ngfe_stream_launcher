@@ -25,19 +25,35 @@ class WindowsProcessManager(private val logger: Logger): ProcessManager {
 
             if (result) {
                 processInformation.let {
-                    logger.run { info("Process ${it.dwProcessId} for $application") }
+                    logger.info("Process ${it.dwProcessId} for $application")
                     CloseHandle(it.hProcess)
                     CloseHandle(it.hThread)
+
+                    return Process(it.dwProcessId.convert())
                 }
-            }
+            } else
+                throw ProcessCreationException("Failed to create process for $application")
         }
     }
 
     override fun waitProcessExit(process: Process) {
         memScoped {
-            val hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, false, process.pid)
-            WaitForSingleObject(hProcess, INFINITE)
-            CloseHandle(hProcess)
+            logger.debug("Obtaining handle for PID ${process.pid}")
+            val hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, process.pid.convert())
+            if (hProcess == null) {
+               val error = GetLastError()
+                logger.error("OpenProcess error code: $error")
+            }
+            val waitResult = WaitForSingleObject(hProcess, INFINITE)
+            logger.debug("WaitForSingleObject return value: $waitResult")
+            if (waitResult == WAIT_FAILED) {
+                val error = GetLastError()
+                logger.error("WaitForSingleObject error code: $error")
+            }
+            if (CloseHandle(hProcess) == 0) {
+                val error = GetLastError()
+                logger.error("WaitForSingleObject error code: $error")
+            }
         }
     }
 }
