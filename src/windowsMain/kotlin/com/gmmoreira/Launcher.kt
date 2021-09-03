@@ -5,25 +5,28 @@ import platform.windows.*
 
 actual class Launcher actual constructor(private val displayDeviceRepository: DisplayDeviceRepository,
                                          private val resolutionRepository: ResolutionRepository,
-                                         private val logger: Logger?) {
+                                         private val processManager: ProcessManager,
+                                         private val logger: Logger) {
     actual fun spawn(config: Configuration) {
         val primaryDevice = displayDeviceRepository.primaryDevice()
         val currentResolution = primaryDevice?.let { resolutionRepository.getCurrentResolution(it) }
         val targetResolution = config.resolution()
-        currentResolution?.let { logger?.run { info("Current resolution: $it") } }
-        targetResolution?.let { logger?.run { info("Target resolution: $it") } }
+        currentResolution?.let { logger.run { info("Current resolution: $it") } }
+        targetResolution?.let { logger.run { info("Target resolution: $it") } }
 
         if (primaryDevice != null && targetResolution != null) {
-            logger?.run { info("Changing resolution to $targetResolution") }
+            logger.run { info("Changing resolution to $targetResolution") }
 
             if (!config.dryRun)
                 resolutionRepository.applyResolution(primaryDevice, targetResolution)
         }
 
+        val process: Process = processManager.createProcess(config)
+        processManager.waitProcessExit(process)
         launch(config)
 
         if (primaryDevice != null && currentResolution != null) {
-            logger?.run { info("Restoring original resolution $currentResolution") }
+            logger.run { info("Restoring original resolution $currentResolution") }
 
             if (!config.dryRun)
                 resolutionRepository.applyResolution(primaryDevice, currentResolution)
@@ -38,7 +41,7 @@ actual class Launcher actual constructor(private val displayDeviceRepository: Di
         val joinedArgs = config.args.joinToString(" ")
         val cwd = config.cwd
 
-        logger?.run {
+        logger.run {
             info("Launching $application")
             info("Arguments: \"$joinedArgs\"")
             cwd?.let { info("Current Working Directory: $it")}
@@ -58,7 +61,7 @@ actual class Launcher actual constructor(private val displayDeviceRepository: Di
 
             if (result) {
                 processInformation.run {
-                    logger?.run { info("Process $dwProcessId for $application") }
+                    logger.run { info("Process $dwProcessId for $application") }
                     // println("Monitoring $dwProcessId for $timeout ms")
 
                     do {

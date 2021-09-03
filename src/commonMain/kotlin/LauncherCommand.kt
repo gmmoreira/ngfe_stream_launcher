@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 
-class LauncherCommand(val logger: Logger, val fileReader: FileReader) : CliktCommand() {
+class LauncherCommand(val logger: Logger, val fileReader: FileReader, val processManager: ProcessManager) : CliktCommand() {
     val application by argument().default("")
     val args by argument().multiple()
     val cwd: String? by option(help = "set current working directory")
@@ -30,8 +30,27 @@ class LauncherCommand(val logger: Logger, val fileReader: FileReader) : CliktCom
             throw UsageError("APPLICATION argument cannot be empty")
         }
 
-        Launcher(displayDeviceRepository, resolutionRepository, logger).run {
-            spawn(configuration)
+        val primaryDevice = displayDeviceRepository.primaryDevice()
+        val currentResolution = primaryDevice?.let { resolutionRepository.getCurrentResolution(it) }
+        val targetResolution = configuration.resolution()
+        currentResolution?.let { logger.run { info("Current resolution: $it") } }
+        targetResolution?.let { logger.run { info("Target resolution: $it") } }
+
+        if (primaryDevice != null && targetResolution != null) {
+            logger.run { info("Changing resolution to $targetResolution") }
+
+            if (!configuration.dryRun)
+                resolutionRepository.applyResolution(primaryDevice, targetResolution)
+        }
+
+        val process: Process = processManager.createProcess(configuration)
+        processManager.waitProcessExit(process)
+
+        if (primaryDevice != null && currentResolution != null) {
+            logger.run { info("Restoring original resolution $currentResolution") }
+
+            if (!configuration.dryRun)
+                resolutionRepository.applyResolution(primaryDevice, currentResolution)
         }
     }
 }

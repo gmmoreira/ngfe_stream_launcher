@@ -1,4 +1,8 @@
 import com.gmmoreira.PosixFileReader
 import com.gmmoreira.PosixLogger
+import com.gmmoreira.PosixProcessManager
 
-fun main(args: Array<String>) = LauncherCommand(PosixLogger("launcher_log.txt"), PosixFileReader()).main(args)
+fun main(args: Array<String>) {
+    val logger = PosixLogger("launcher_log.txt")
+    LauncherCommand(logger, PosixFileReader(), PosixProcessManager(logger)).main(args)
+}
