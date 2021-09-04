@@ -9,7 +9,7 @@ class PosixLogger(filename: String): Logger {
     }
 
     override fun write(message: String) {
-        println(message)
+        print(message)
 
         fileHandle?.let {
             fputs(message, fileHandle)
